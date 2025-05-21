@@ -1,7 +1,25 @@
-node_modules
-build/
-.gradle/
-*.class
+# Node modules
+node_modules/
+client/node_modules/
+server/node_modules/
+
+# Build outputs
+client/build/
+client/dist/
+server/dist/
+server/build/
+
+# Logs
+*.log
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Environment files
+*.env
+.env.*
+
 
 
 

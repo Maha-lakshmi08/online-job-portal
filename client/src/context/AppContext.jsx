@@ -87,27 +87,42 @@ export const AppContextProvider = (props) => {
     };
 
     //Function to fetch user data
-   const fetchUserData = async () => {
-    try {
-        const token = await getToken();
-        console.log("Clerk Auth Token:", token); 
+  const fetchUserData = async () => {
+  try {
+    const token = await getToken();
+    if (!token) return;
 
-        const {data} = await axios.get(backendUrl + '/api/users/user', {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+    const res = await axios.get(`${backendUrl}/api/users/user`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
 
-        if (data.success) {
-            setUserData(data.user);
-        } else {
-            console.log("User fetch failed:", data.message); // ✅ Add this
-            toast.error(data.message);
-        }
-        
-    } catch (error) {
-        console.error("User fetch error:", error); // ✅ Improve this
-        toast.error(error.message);
+    // If user exists in DB
+    if (res.data.success) {
+      setUserData(res.data.user);
+    } else {
+      // Try to create user if not found
+      console.log("User not found in DB, attempting to create user...");
+      const createRes = await axios.post(`${backendUrl}/api/users`, {
+        email: user.primaryEmailAddress.emailAddress,
+        name: user.fullName,
+        clerkId: user.id,
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (createRes.data.success) {
+        setUserData(createRes.data.user);
+        toast.success("User profile created");
+      } else {
+        toast.error(createRes.data.message);
+      }
     }
-}
+  } catch (error) {
+    console.error("Error fetching/creating user:", error);
+    toast.error(error.message);
+  }
+};
+
 
     useEffect(() => {
         fetchJobs()

@@ -1,28 +1,33 @@
-import express from 'express'
-import { applyForJob, getUserData, getUserJobApplications, updateUserResume } from '../controllers/userController.js'
-import upload from '../config/multer.js'
+import express from 'express';
+import { getUserData, updateUserResume } from '../controllers/userController.js';
+import { requireAuth } from '@clerk/express';
+import User from '../models/User.js';
 
+const router = express.Router();
 
+// GET authenticated user data
+router.get('/me', requireAuth(), getUserData);
 
-const router = express.Router()
+// PUT update resume
+router.put('/resume', requireAuth(), updateUserResume);
 
-//Get user Data
-router.get('/:id', async (req, res) => {
-  const user = await User.findById(req.params.id);
-  if (!user) return res.status(404).json({ message: 'User Not Found' });
-  res.json(user);
+// POST: create user on first login
+router.post('/', requireAuth(), async (req, res) => {
+  try {
+    const { name, email, clerkId } = req.body;
+
+    const existing = await User.findOne({ clerkId });
+    if (existing) {
+      return res.json({ success: true, user: existing });
+    }
+
+    const user = new User({ name, email, clerkId });
+    await user.save();
+
+    res.status(201).json({ success: true, user });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Failed to create user' });
+  }
 });
 
-
-//Apply for a job
-router.post('/apply', applyForJob)
-
-//Get applied jobs data
-router.get('/applications', getUserJobApplications)
-
-//Update user profile (resume)
-router.post('/update-resume', upload.single('resume'),updateUserResume)
-
 export default router;
-
-

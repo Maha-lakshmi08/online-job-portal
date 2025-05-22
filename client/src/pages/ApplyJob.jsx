@@ -18,11 +18,13 @@ import { useUser } from '@clerk/clerk-react';  // example
 
 const ApplyJob = () => {
 
+   const { id } = useParams()
+
   const { user, isLoaded } = useUser();
 
   if (!isLoaded) return null; 
 
-  const { id } = useParams()
+ 
 
   const [JobData, setJobData] = useState(null)
 

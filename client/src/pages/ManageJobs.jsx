@@ -20,7 +20,7 @@ const ManageJobs = () => {
   const fetchCompanyJobs = async () => {
   try {
     const { data } = await axios.get(backendUrl + '/api/company/list-jobs', {
-      headers: { token: companyToken }
+      headers: { Authorization: `Bearer ${companyToken}` }
     });
 
     if (data.success) {
